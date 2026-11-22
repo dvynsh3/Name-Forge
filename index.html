@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Name Forge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #080C12;
+    --panel: #111827;
+    --panel2: #1C2333;
+    --border: #2A3548;
+    --teal: #00E5CC;
+    --teal-dim: rgba(0,229,204,0.12);
+    --teal-glow: rgba(0,229,204,0.35);
+    --gold: #C9A84C;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #E8EDF5;
+    --text-muted: #7A8BA0;
+    --text-dim: #4A5568;
+    --red: #FF5C5C;
+    --purple: #9D6EFF;
+    --green: #4ADE80;
+    --tab-w: 130px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 18px var(--teal-glow);
+  }
+  .logo span { color: var(--gold); }
+
+  /* ── CONTROLS BAR ── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 24px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .ctrl-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  label.ctrl-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  input[type=number], input[type=text], select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type=number]:focus, input[type=text]:focus, select:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px var(--teal-dim);
+  }
+  input[type=number] { width: 65px; }
+  input[type=text] { width: 160px; }
+
+  /* Range slider */
+  .range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    box-shadow: 0 0 6px var(--teal-glow);
+  }
+  .range-val {
+    font-size: 0.75rem;
+    color: var(--teal);
+    font-family: 'Share Tech Mono', monospace;
+    min-width: 24px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.18s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  .btn-teal {
+    background: var(--teal);
+    color: #080C12;
+  }
+  .btn-teal:hover { background: #00fff5; box-shadow: 0 0 12px var(--teal-glow); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+  }
+  .btn-outline:hover { background: var(--teal-dim); box-shadow: 0 0 8px var(--teal-dim); }
+  .btn-gold {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .btn-gold:hover { background: var(--gold-dim); }
+  .btn-red {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+  }
+  .btn-red:hover { background: rgba(255,92,92,0.12); }
+  .btn-auto {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-auto.running { background: #6B46FF; }
+  .btn-auto.running::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 1.2s infinite;
+  }
+  @keyframes shimmer { to { left: 100%; } }
+  .btn-auto:hover { opacity: 0.88; }
+
+  .divider-v {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  /* ── TABS ── */
+  .tabs-strip {
+    display: flex;
+    padding: 0 24px;
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-strip::-webkit-scrollbar { display: none; }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+  .tab .tab-icon { font-size: 0.95rem; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 0;
+    min-height: calc(100vh - 160px);
+  }
+
+  .name-panel {
+    padding: 28px 28px 28px 24px;
+    border-right: 1px solid var(--border);
+  }
+
+  /* Current name display */
+  .current-name-wrap {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px 28px;
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .current-name-wrap::before {
+    content: '';
+    position: absolute;
+    top: -40%; left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(ellipse, var(--teal-dim) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .current-name {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 3vw, 2.4rem);
+    font-weight: 700;
+    color: var(--teal);
+    text-shadow: 0 0 24px var(--teal-glow);
+    letter-spacing: 0.05em;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+  .current-name.empty {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 400;
+    text-shadow: none;
+    letter-spacing: 0.08em;
+  }
+  .name-method-badge {
+    margin-top: 10px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* History */
+  .history-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+    animation: fadeIn 0.3s ease;
+  }
+  .history-item:hover { border-color: var(--teal); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .history-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--text);
+    letter-spacing: 0.03em;
+  }
+  .history-meta {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .history-badge {
+    font-size: 0.62rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    padding: 24px 18px;
+    background: var(--panel);
+  }
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+  .sidebar-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Method selector */
+  .method-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .method-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .method-pill:hover { border-color: var(--teal); color: var(--text); }
+  .method-pill.active {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    color: var(--teal);
+  }
+  .method-pill input[type=checkbox] { display: none; }
+  .pill-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .method-pill.active .pill-dot { background: currentColor; }
+
+  /* ── DICTIONARY MODAL ── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: min(90vw, 680px);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--red); }
+  .modal-body {
+    overflow-y: auto;
+    padding: 18px 22px;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .dict-section { margin-bottom: 20px; }
+  .dict-section-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .dict-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dict-tag {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ── TYPEWRITER EFFECT ── */
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+  .cursor::after {
+    content: '|';
+    color: var(--teal);
+    animation: blink 0.8s infinite;
+    margin-left: 2px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { border-top: 1px solid var(--border); }
+    .controls { gap: 8px; }
+  }
+
+  .pulse {
+    animation: pulse 0.4s ease;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+
+  .auto-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    color: var(--purple);
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .auto-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--purple);
+    animation: blink 0.7s infinite;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.06em;
+  }
+
+  .speed-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* ── ALL TAB GRID ── */
+  .all-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 800px) { .all-grid { grid-template-columns: 1fr; } }
+  .all-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .all-card:hover { border-color: var(--border); }
+  .all-card-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .all-card-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--teal);
+    text-shadow: 0 0 14px var(--teal-glow);
+    word-break: break-word;
+    line-height: 1.35;
+  }
+  .all-card-name.empty {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-shadow: none;
+    font-weight: 400;
+  }
+  .all-card-method {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    margin-top: 5px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── METHOD SELECT LIST ── */
+  .method-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .method-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .method-row:last-child { border-bottom: none; }
+  .method-row:hover { background: var(--panel2); color: var(--text); }
+  .method-row.selected { color: var(--teal); background: var(--teal-dim); }
+  .method-row.selected .mchk { background: var(--teal); border-color: var(--teal); }
+  .method-row.selected .mchk::after { opacity: 1; }
+  .mchk {
+    width: 15px; height: 15px;
+    border-radius: 3px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .mchk::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #080C12;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  /* ── FULL HISTORY DROPDOWN ── */
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .see-all-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 3px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.06em;
+  }
+  .see-all-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .full-history-panel {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+  .full-history-panel.open { display: block; }
+  .full-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+  .full-history-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0 4px;
+  }
+  .full-history-close:hover { color: var(--red); }
+  .full-history-scroll {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .fh-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+  }
+  .fh-item:last-child { border-bottom: none; }
+  .fh-item:nth-child(odd) { background: rgba(255,255,255,0.015); }
+  .fh-name { color: var(--text); }
+  .fh-meta { font-size: 0.62rem; color: var(--text-dim); margin-top: 1px; }
+  .fh-num { font-size: 0.65rem; color: var(--text-dim); flex-shrink: 0; margin-left: 10px; }
+
+  /* ── FAVOURITE / LIKE BUTTONS ── */
+  .item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: transform 0.15s, opacity 0.15s;
+    opacity: 0.35;
+    line-height: 1;
+  }
+  .icon-btn:hover { opacity: 1; transform: scale(1.2); }
+  .icon-btn.active { opacity: 1; }
+  .icon-btn.fav-btn.active { color: var(--gold); }
+  .icon-btn.like-btn.active { color: #ff6b9d; }
+
+  /* ── CURRENT NAME ACTION BAR ── */
+  .current-name-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .current-name-actions .icon-btn {
+    font-size: 1.3rem;
+    opacity: 0.4;
+    padding: 4px 8px;
+  }
+  .current-name-actions .icon-btn:hover { opacity: 1; }
+  .current-name-actions .icon-btn.active { opacity: 1; }
+  .copy-hint {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.06em;
+    margin-left: 4px;
+  }
+
+  /* ── METHOD SELECT-ALL ROW ── */
+  .method-selectall {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 12px;
+    background: var(--panel2);
+    border-bottom: 2px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .method-selectall-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .method-selectall-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ── RELATED NAMES PANEL ── */
+  .related-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .related-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .related-hint {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .related-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .related-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+  .related-item:hover { border-color: var(--purple); }
+  .related-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .like-count {
+    font-size: 0.62rem;
+    color: #ff6b9d;
+    font-family: 'Share Tech Mono', monospace;
+    margin-right: 6px;
+  }
+
+  /* ── SAVE DIR MODAL ── */
+  .save-dir-modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: min(90vw, 520px);
+    padding: 28px;
+  }
+  .save-dir-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .save-dir-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .save-dir-input {
+    width: 100%;
+    margin-bottom: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+  }
+  .save-dir-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 18px;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    color: var(--text);
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    font-family: 'Share Tech Mono', monospace;
+    max-width: 320px;
+  }
+  .toast.show { transform: none; opacity: 1; }
+  .toast .toast-icon { margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">Name <span>Forge</span></div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span id="autoIndicator" class="auto-indicator" style="display:none;">
+      <span class="auto-dot"></span> AUTO
+    </span>
+    <button class="btn btn-gold" onclick="openFavourites()">⭐ Favourites</button>
+    <button class="btn btn-gold" onclick="openDict()">📖 Dictionary</button>
+    <button class="btn btn-red" onclick="clearAll()">✕ Clear All</button>
+  </div>
+</header>
+
+<!-- SAVE DIR MODAL -->
+<div class="modal-bg" id="saveDirBg" onclick="closeSaveDirOnBg(event)">
+  <div class="save-dir-modal">
+    <div class="save-dir-title">⭐ Save to Favourites</div>
+    <div class="save-dir-desc">
+      Downloads a <strong>.md file</strong> to append to your Obsidian vault. Your browser will save it to your Downloads folder — move it to your vault, or set your browser's download location to your vault directly.<br><br>
+      Set the filename once; it's remembered for the rest of the session.
+    </div>
+    <label class="ctrl-label" style="display:block;margin-bottom:6px;">Vault subfolder path <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(optional, e.g. <code style="font-size:0.75em;">Worldbuilding/Names</code>)</span></label>
+    <input type="text" class="save-dir-input" id="favDir" placeholder="e.g. Worldbuilding/Names  (leave blank for root)">
+    <label class="ctrl-label" style="display:block;margin:10px 0 6px;">Filename <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(without .md)</span></label>
+    <input type="text" class="save-dir-input" id="favFilename" value="Name Forge Favourites" placeholder="e.g. Name Forge Favourites">
+    <div id="saveDirPreview" style="font-size:0.72rem;color:var(--teal);font-family:'Share Tech Mono',monospace;margin-top:4px;"></div>
+    <div style="font-size:0.7rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;margin-top:8px;line-height:1.5;">
+      Tip: Each save downloads a file with just the new row. Open your vault file and paste the row at the bottom of the table. Or use "Download All" in Favourites to get the full table at once.
+    </div>
+    <div class="save-dir-actions">
+      <button class="btn btn-outline" onclick="closeSaveDir()">Cancel</button>
+      <button class="btn btn-gold" onclick="confirmSave()">Download & Save ⭐</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAVOURITES LIST MODAL -->
+<div class="modal-bg" id="favListBg" onclick="if(event.target===this)closeFavList()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">⭐ Favourites this session</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-gold" style="font-size:0.75rem;padding:5px 10px;" onclick="downloadAllFavourites()">⬇ Download All</button>
+        <button class="modal-close" onclick="closeFavList()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="favListBody"></div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="ctrl-group">
+    <label class="ctrl-label">Words</label>
+    <input type="number" id="wordCount" min="1" max="5" value="2">
+  </div>
+
+  <div class="divider-v"></div>
+
+  <div class="ctrl-group">
+    <label class="ctrl-label">Seed Word</label>
+    <input type="text" id="seedWord" placeholder="optional seed…">
+  </div>
+
+  <div class="divider-v"></div>
+
+  <div class="ctrl-group">
+    <label class="ctrl-label">Randomness</label>
+    <div class="range-wrap">
+      <input type="range" id="randomness" min="1" max="10" value="5" oninput="document.getElementById('rVal').textContent=this.value">
+      <span class="range-val" id="rVal">5</span>
+    </div>
+  </div>
+
+  <div class="divider-v"></div>
+
+  <div class="ctrl-group">
+    <label class="ctrl-label">Letter Chaos</label>
+    <div class="range-wrap">
+      <input type="range" id="letterChaos" min="0" max="10" value="3" oninput="document.getElementById('lVal').textContent=this.value">
+      <span class="range-val" id="lVal">3</span>
+    </div>
+  </div>
+
+  <div class="divider-v"></div>
+
+  <div class="ctrl-group">
+    <label class="ctrl-label">Auto Speed</label>
+    <div class="range-wrap">
+      <input type="range" id="autoSpeed" min="1" max="10" value="1" oninput="document.getElementById('sVal').textContent=this.value">
+      <span class="range-val" id="sVal">1</span>
+    </div>
+  </div>
+
+  <div class="divider-v"></div>
+
+  <button class="btn btn-teal" onclick="refreshAll()">⚡ Refresh</button>
+  <button class="btn btn-auto" id="autoBtn" onclick="toggleAuto()">▶ Auto Refresh</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-strip" id="tabsStrip">
+  <div class="tab active" data-tab="all" onclick="switchTab('all')"><span class="tab-icon">🌐</span> All</div>
+  <div class="tab" data-tab="people" onclick="switchTab('people')"><span class="tab-icon">👤</span> People</div>
+  <div class="tab" data-tab="titles" onclick="switchTab('titles')"><span class="tab-icon">👑</span> Titles</div>
+  <div class="tab" data-tab="places" onclick="switchTab('places')"><span class="tab-icon">🗺️</span> Places</div>
+  <div class="tab" data-tab="tools" onclick="switchTab('tools')"><span class="tab-icon">⚒️</span> Tools</div>
+  <div class="tab" data-tab="abilities" onclick="switchTab('abilities')"><span class="tab-icon">✨</span> Abilities</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="name-panel">
+
+    <!-- ALL TAB -->
+    <div class="tab-content active" id="tab-all">
+      <div class="all-grid">
+        <div class="all-card">
+          <div class="all-card-label">👤 People</div>
+          <div class="all-card-name empty" id="all-name-people">— press refresh —</div>
+          <div class="all-card-method" id="all-method-people"></div>
+        </div>
+        <div class="all-card">
+          <div class="all-card-label">👑 Titles</div>
+          <div class="all-card-name empty" id="all-name-titles">— press refresh —</div>
+          <div class="all-card-method" id="all-method-titles"></div>
+        </div>
+        <div class="all-card">
+          <div class="all-card-label">🗺️ Places</div>
+          <div class="all-card-name empty" id="all-name-places">— press refresh —</div>
+          <div class="all-card-method" id="all-method-places"></div>
+        </div>
+        <div class="all-card">
+          <div class="all-card-label">⚒️ Tools</div>
+          <div class="all-card-name empty" id="all-name-tools">— press refresh —</div>
+          <div class="all-card-method" id="all-method-tools"></div>
+        </div>
+        <div class="all-card" style="grid-column: 1 / -1;">
+          <div class="all-card-label">✨ Abilities</div>
+          <div class="all-card-name empty" id="all-name-abilities">— press refresh —</div>
+          <div class="all-card-method" id="all-method-abilities"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- People -->
+    <div class="tab-content" id="tab-people">
+      <div class="current-name-wrap" id="wrap-people">
+        <div class="current-name empty" id="name-people">— press refresh —</div>
+        <div class="name-method-badge" id="method-people"></div>
+        <div class="current-name-actions" id="actions-people" style="display:none;">
+          <button class="icon-btn like-btn" id="cur-like-people" title="Like (biases suggestions)" onclick="toggleCurLike('people')">♡</button>
+          <button class="icon-btn fav-btn" id="cur-fav-people" title="Save to favourites" onclick="toggleCurFav('people')">⭐</button>
+          <span class="copy-hint" style="cursor:pointer;" onclick="copyCurrent('people')" title="Copy name">⎘ copy</span>
+        </div>
+      </div>
+      <div class="history-header">
+        <div class="history-label" style="margin-bottom:0">Last Generated</div>
+        <button class="see-all-btn" onclick="toggleFullHistory('people')">See all ▾</button>
+      </div>
+      <div class="history-list" id="hist-people"></div>
+      <div class="full-history-panel" id="fullhist-people">
+        <div class="full-history-header">
+          <span>All generated — People</span>
+          <button class="full-history-close" onclick="toggleFullHistory('people')">✕</button>
+        </div>
+        <div class="full-history-scroll" id="fullhist-scroll-people"></div>
+      </div>
+    </div>
+
+    <!-- Titles -->
+    <div class="tab-content" id="tab-titles">
+      <div class="current-name-wrap" id="wrap-titles">
+        <div class="current-name empty" id="name-titles">— press refresh —</div>
+        <div class="name-method-badge" id="method-titles"></div>
+        <div class="current-name-actions" id="actions-titles" style="display:none;">
+          <button class="icon-btn like-btn" id="cur-like-titles" title="Like" onclick="toggleCurLike('titles')">♡</button>
+          <button class="icon-btn fav-btn" id="cur-fav-titles" title="Favourite" onclick="toggleCurFav('titles')">⭐</button>
+          <span class="copy-hint" style="cursor:pointer;" onclick="copyCurrent('titles')" title="Copy name">⎘ copy</span>
+        </div>
+      </div>
+      <div class="history-header">
+        <div class="history-label" style="margin-bottom:0">Last Generated</div>
+        <button class="see-all-btn" onclick="toggleFullHistory('titles')">See all ▾</button>
+      </div>
+      <div class="history-list" id="hist-titles"></div>
+      <div class="full-history-panel" id="fullhist-titles">
+        <div class="full-history-header">
+          <span>All generated — Titles</span>
+          <button class="full-history-close" onclick="toggleFullHistory('titles')">✕</button>
+        </div>
+        <div class="full-history-scroll" id="fullhist-scroll-titles"></div>
+      </div>
+    </div>
+
+    <!-- Places -->
+    <div class="tab-content" id="tab-places">
+      <div class="current-name-wrap" id="wrap-places">
+        <div class="current-name empty" id="name-places">— press refresh —</div>
+        <div class="name-method-badge" id="method-places"></div>
+        <div class="current-name-actions" id="actions-places" style="display:none;">
+          <button class="icon-btn like-btn" id="cur-like-places" title="Like" onclick="toggleCurLike('places')">♡</button>
+          <button class="icon-btn fav-btn" id="cur-fav-places" title="Favourite" onclick="toggleCurFav('places')">⭐</button>
+          <span class="copy-hint" style="cursor:pointer;" onclick="copyCurrent('places')" title="Copy name">⎘ copy</span>
+        </div>
+      </div>
+      <div class="history-header">
+        <div class="history-label" style="margin-bottom:0">Last Generated</div>
+        <button class="see-all-btn" onclick="toggleFullHistory('places')">See all ▾</button>
+      </div>
+      <div class="history-list" id="hist-places"></div>
+      <div class="full-history-panel" id="fullhist-places">
+        <div class="full-history-header">
+          <span>All generated — Places</span>
+          <button class="full-history-close" onclick="toggleFullHistory('places')">✕</button>
+        </div>
+        <div class="full-history-scroll" id="fullhist-scroll-places"></div>
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="tab-content" id="tab-tools">
+      <div class="current-name-wrap" id="wrap-tools">
+        <div class="current-name empty" id="name-tools">— press refresh —</div>
+        <div class="name-method-badge" id="method-tools"></div>
+        <div class="current-name-actions" id="actions-tools" style="display:none;">
+          <button class="icon-btn like-btn" id="cur-like-tools" title="Like" onclick="toggleCurLike('tools')">♡</button>
+          <button class="icon-btn fav-btn" id="cur-fav-tools" title="Favourite" onclick="toggleCurFav('tools')">⭐</button>
+          <span class="copy-hint" style="cursor:pointer;" onclick="copyCurrent('tools')" title="Copy name">⎘ copy</span>
+        </div>
+      </div>
+      <div class="history-header">
+        <div class="history-label" style="margin-bottom:0">Last Generated</div>
+        <button class="see-all-btn" onclick="toggleFullHistory('tools')">See all ▾</button>
+      </div>
+      <div class="history-list" id="hist-tools"></div>
+      <div class="full-history-panel" id="fullhist-tools">
+        <div class="full-history-header">
+          <span>All generated — Tools</span>
+          <button class="full-history-close" onclick="toggleFullHistory('tools')">✕</button>
+        </div>
+        <div class="full-history-scroll" id="fullhist-scroll-tools"></div>
+      </div>
+    </div>
+
+    <!-- Abilities -->
+    <div class="tab-content" id="tab-abilities">
+      <div class="current-name-wrap" id="wrap-abilities">
+        <div class="current-name empty" id="name-abilities">— press refresh —</div>
+        <div class="name-method-badge" id="method-abilities"></div>
+        <div class="current-name-actions" id="actions-abilities" style="display:none;">
+          <button class="icon-btn like-btn" id="cur-like-abilities" title="Like" onclick="toggleCurLike('abilities')">♡</button>
+          <button class="icon-btn fav-btn" id="cur-fav-abilities" title="Favourite" onclick="toggleCurFav('abilities')">⭐</button>
+          <span class="copy-hint" style="cursor:pointer;" onclick="copyCurrent('abilities')" title="Copy name">⎘ copy</span>
+        </div>
+      </div>
+      <div class="history-header">
+        <div class="history-label" style="margin-bottom:0">Last Generated</div>
+        <button class="see-all-btn" onclick="toggleFullHistory('abilities')">See all ▾</button>
+      </div>
+      <div class="history-list" id="hist-abilities"></div>
+      <div class="full-history-panel" id="fullhist-abilities">
+        <div class="full-history-header">
+          <span>All generated — Abilities</span>
+          <button class="full-history-close" onclick="toggleFullHistory('abilities')">✕</button>
+        </div>
+        <div class="full-history-scroll" id="fullhist-scroll-abilities"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Generation Methods</div>
+      <div class="method-list" id="methodList">
+        <div class="method-selectall">
+          <span>Methods</span>
+          <button class="method-selectall-btn" id="selectAllBtn" onclick="toggleSelectAll()">Unselect All</button>
+        </div>
+        <div class="method-row selected" data-method="english" onclick="toggleMethod(this)">
+          <span class="mchk"></span> English Words
+        </div>
+        <div class="method-row selected" data-method="mutate" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Letter Mutation
+        </div>
+        <div class="method-row selected" data-method="addremove" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Add / Remove Letter
+        </div>
+        <div class="method-row selected" data-method="hindi" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Hindi Numbers
+        </div>
+        <div class="method-row selected" data-method="compound" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Compound (Fire mage of…)
+        </div>
+        <div class="method-row selected" data-method="fiction" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Fiction Names
+        </div>
+        <div class="method-row selected" data-method="multilang" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Multilingual Words
+        </div>
+        <div class="method-row selected" data-method="stellar" onclick="toggleMethod(this)">
+          <span class="mchk"></span> Star Names
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Stats This Session</div>
+      <div id="stats" style="font-size:0.78rem;color:var(--text-muted);line-height:2;font-family:'Share Tech Mono',monospace;"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Related Names</div>
+      <div class="related-hint" style="font-size:0.7rem;color:var(--text-dim);margin-bottom:10px;line-height:1.5;">
+        ♡ Like names to bias suggestions. Resets each session.
+      </div>
+      <div class="related-list" id="relatedList">
+        <div style="font-size:0.75rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;">Generate some names first…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DICTIONARY MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📖 Word Dictionary</span>
+      <button class="modal-close" onclick="closeDict()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  DICTIONARY
+// ═══════════════════════════════════════════════════════
+
+const DICT = {
+  // --- Name-like English roots ---
+  nameRoots: [
+    "Arden","Cael","Daven","Elan","Faron","Galen","Haven","Idris","Joren","Kael",
+    "Laren","Maren","Nael","Oran","Paven","Qaill","Riven","Soren","Taren","Uren",
+    "Varek","Wren","Xalen","Yoren","Zarek","Alden","Brynn","Calder","Dara","Eryn",
+    "Faelen","Gwyn","Havre","Illya","Jace","Kira","Lyric","Myra","Neve","Oryn",
+    "Pyra","Quill","Rylan","Sable","Talon","Ursa","Vael","Wynne","Xyla","Yael"
+  ],
+
+  // --- English words that sound name-like ---
+  englishNameLike: [
+    "Stone","River","Ash","Ember","Storm","Vale","Glade","Crest","Dusk","Dawn",
+    "Frost","Blaze","Cliff","Heath","Moor","Rune","Veil","Thorn","Fern","Wick",
+    "Grim","Stark","Bolt","Drake","Flint","Marsh","Pike","Reed","Sage","Swift",
+    "Vane","Wren","Zeal","Colt","Glen","Hale","Iris","Jade","Knox","Lark","Mace",
+    "Nox","Onyx","Pyre","Quill","Rook","Shard","Tide","Urn","Vex","Ward","Yew"
+  ],
+
+  // --- Hindi numbers (1-100) in English transliteration ---
+  hindiNumbers: [
+    "Ek","Do","Teen","Chaar","Paanch","Chhe","Saat","Aath","Nau","Das",
+    "Gyarah","Barah","Terah","Chaudah","Pandrah","Solah","Satrah","Atharah","Unnis","Bees",
+    "Ikkis","Baais","Teis","Chaubis","Pachchis","Chhabbis","Sattaais","Atthais","Untees","Tees",
+    "Iktatees","Battees","Taintees","Chautees","Paintees","Chattees","Saintees","Artees","Untaalees","Chaalees",
+    "Iktalees","Bayalees","Tentaalees","Chavaalees","Paintaalees","Chhiyaalees","Saintaalees","Artaalees","Unchaas","Pachaas",
+    "Ikyaavan","Baavan","Tirpan","Chauvan","Pachpan","Chhappan","Sattavan","Atthavan","Unsath","Saath",
+    "Iksath","Basath","Tirsath","Chausath","Paisath","Chhiyasath","Sarsath","Arsath","Unhattar","Sattar",
+    "Ikhattar","Bahattar","Tihattar","Chauhattar","Pachhattar","Chhihattar","Sattattar","Athattar","Unnaasi","Naasi",
+    "Ikyaasi","Byaasi","Tiraasi","Chauraasi","Pachaasi","Chhiyaasi","Sattaasi","Atthaasi","Navaasi","Nabbe",
+    "Ikyaanve","Baanve","Tiranve","Chauraanve","Pachaanve","Chhiyaanve","Sattaanve","Atthaanve","Ninyaanve","Sau"
+  ],
+
+  // --- Compound connectors ---
+  compoundOf: ["of","the","from","at","in","under","beyond","within"],
+  compoundPlaces: [
+    "Wacom","Worli","Vethara","Kalindra","Moreth","Sunhaven","Duskfall","Ashmont",
+    "Thornfield","Grimwater","Frostpeak","Embervale","Stoneridge","Nighthollow",
+    "Irongate","Goldenspire","Silverfen","Obsidian Keep","Whispering Pines","The Mirelands"
+  ],
+  compoundRoles: [
+    "Mage","Keeper","Warden","Hunter","Seeker","Knight","Shadow","Blade",
+    "Herald","Oracle","Sage","Wraith","Templar","Rider","Chosen","Marked"
+  ],
+  compoundElements: [
+    "Fire","Ice","Storm","Earth","Void","Light","Dark","Blood","Soul","Time","Iron","Silver"
+  ],
+
+  // --- Fiction names (trimmed anime, kept evocative ones) ---
+  fiction: {
+    people: [
+      "Aragorn","Gandalf","Legolas","Eowyn","Faramir","Boromir","Galadriel","Elrond",
+      "Daenerys","Tyrion","Arya","Cersei","Stannis","Melisandre","Jaime","Oberyn",
+      "Katniss","Finnick","Johanna","Haymitch",
+      "Hermione","Draco","Neville","Luna","Sirius","Remus","Bellatrix","Alastor",
+      "Zuko","Azula","Iroh","Toph","Sokka","Katara",
+      "Itachi","Madara","Nagato","Konan","Obito",
+      "Geralt","Yennefer","Ciri","Triss","Vesemir","Gaunter",
+      "Elric","Conan","Fafhrd","Drizzt","Elspeth","Raistlin",
+      "Rand","Moiraine","Lan","Nynaeve","Perrin","Egwene",
+      "Kvothe","Felurian","Bast","Denna","Elodin"
+    ],
+    titles: [
+      "The Undying","The Unmade","The Forsaken","The Archon","The Watcher",
+      "Supreme Overlord","Grand Vizier","Shadow Broker","Iron Chancellor",
+      "The Everlasting","The Timeless","The Ancient","First Among Equals",
+      "The Absolute","High Exemplar","The Unbroken","Dawnbringer","Duskwalker"
+    ],
+    places: [
+      "Rivendell","Mordor","Mirkwood","Gondor","Rohan","Isengard","Khazad-dum",
+      "Hogwarts","Azkaban","Hogsmeade","Diagon Alley",
+      "Valyria","Dragonstone","Winterfell","King's Landing","Braavos",
+      "Narnia","Earthsea","Prydain","Neverland",
+      "Athkatla","Waterdeep","Baldur's Gate","Icewind Dale","Menzoberranzan",
+      "Azeroth","Stormwind","Silvermoon","Undercity"
+    ],
+    tools: [
+      "Excalibur","Mjolnir","Sting","Glamdring","Orcrist","Anduril","Narsil",
+      "Shadowfang","Dawnbreaker","Frostmourne","Ashbringer","Gae Bolg",
+      "Durandal","Joyeuse","Curtana","Tyrfing","Gram","Naegling","Crocea Mors"
+    ],
+    abilities: [
+      "Avada Kedavra","Crucio","Expelliarmus","Lumos","Sectumsempra","Fiendfyre",
+      "Susanoo","Amaterasu","Tsukuyomi","Izanagi",
+      "Kamehameha","Galick Gun","Final Flash",
+      "Igni","Aard","Quen","Yrden","Axii",
+      "Omnislash","Zantetsuken","Ultima","Meteor","Bahamut"
+    ]
+  },
+
+  // --- Stars (named) ---
+  stellar: {
+    stars: [
+      // Bright named stars
+      "Sirius","Canopus","Arcturus","Vega","Capella","Rigel","Procyon","Achernar",
+      "Betelgeuse","Hadar","Altair","Aldebaran","Antares","Spica","Pollux","Fomalhaut",
+      "Deneb","Mimosa","Regulus","Adhara","Castor","Gacrux","Shaula","Bellatrix",
+      "Elnath","Miaplacidus","Alnilam","Alnitak","Mintaka","Saiph","Wezen","Aludra",
+      "Dubhe","Merak","Phecda","Megrez","Alioth","Mizar","Alkaid","Thuban",
+      "Kochab","Pherkad","Polaris","Schedar","Caph","Ruchbah","Segin",
+      "Algol","Mirfak","Atik","Menkar","Mira","Omicron","Hamal","Sheratan",
+      "Zubenelgenubi","Zubeneschamali","Dschubba","Graffias","Lesath","Sargas",
+      "Alnair","Peacock","Atria","Trianguli","Sabik","Rasalhague","Cebalrai",
+      "Nunki","Kaus","Rukbat","Arkab","Alnasl","Polis","Ascella","Albaldah",
+      "Sadalsuud","Sadalmelik","Sadalachbia","Ancha","Albali","Enif","Homam",
+      "Markab","Scheat","Algenib","Matar","Biham","Sadalbari","Alpheratz",
+      "Mirach","Almach","Adhil","Azimech","Zaniah","Porrima","Auva","Minelauva",
+      "Vindemiatrix","Heze","Syrma","Khambalia","Nusakan","Alphecca","Gemma",
+      "Rastaban","Eltanin","Grumium","Tyl","Alwaid","Edasich","Dziban",
+      "Tarazed","Alshain","Okab","Bezek","Sham","Sagitta","Alsafi","Rotanev"
+    ]
+  },
+
+  // --- Multilingual names & common words (romanised) ---
+  multilang: {
+    japanese: [
+      // Names
+      "Akira","Haruto","Yuki","Sora","Ren","Hana","Kaito","Miyuki","Ryu","Sakura",
+      "Takeshi","Nozomi","Kenji","Yuna","Shinji","Asahi","Mei","Tsubasa","Koharu","Hayate",
+      // Common/evocative words
+      "Kaze","Tsuki","Hoshi","Yama","Kawa","Mori","Sora","Hi","Umi","Yoru",
+      "Hikari","Kage","Shiro","Kumo","Ame","Hana","Ishi","Taki","Nami","Koi",
+      "Mugen","Yume","Tamashi","Kokoro","Inochi","Chikara","Ikari","Bureiku","Ryu","Ken"
+    ],
+    italian: [
+      // Names
+      "Luca","Marco","Giulia","Sofia","Lorenzo","Valentina","Matteo","Aurora","Giovanni","Chiara",
+      "Alessandro","Beatrice","Federico","Elisa","Davide","Martina","Andrea","Serena","Roberto","Francesca",
+      // Common/evocative words
+      "Fuoco","Acqua","Terra","Vento","Luce","Ombra","Notte","Alba","Luna","Stelle",
+      "Pietra","Ferro","Sangue","Anima","Forza","Coraggio","Tempesta","Fulmine","Mare","Cielo"
+    ],
+    french: [
+      // Names
+      "Ethan","Manon","Lucas","Camille","Nathan","Chloe","Hugo","Lea","Theo","Emma",
+      "Arthur","Jade","Louis","Ines","Clement","Zoe","Baptiste","Noemie","Raphael","Lucie",
+      // Common/evocative words
+      "Feu","Eau","Terre","Vent","Lumiere","Ombre","Nuit","Aube","Lune","Etoile",
+      "Pierre","Fer","Sang","Ame","Force","Courage","Orage","Eclair","Mer","Ciel"
+    ],
+    korean: [
+      // Names (romanised)
+      "Jiyeon","Minjun","Seoyeon","Jihoon","Yuna","Dohyun","Sooyeon","Jaewon","Hyerin","Sunwoo",
+      "Minji","Taehyun","Yerin","Junho","Chaeyeon","Siwoo","Jisoo","Wonjae","Hayeon","Kyungjae",
+      // Common/evocative words
+      "Baram","Bit","Haneul","Byeol","Dal","San","Gang","Baram","Geu","Bul",
+      "Eom","Yong","Cheon","Hwa","Gim","Nari","Sarang","Haeum","Noul","Seol"
+    ],
+    arabic: [
+      // Names
+      "Zaid","Layla","Omar","Nour","Khalid","Yasmin","Hassan","Fatima","Tariq","Amira",
+      "Rami","Hana","Sami","Dina","Karim","Sara","Bilal","Rania","Faris","Lina",
+      // Common/evocative words
+      "Nar","Nour","Rih","Sama","Qamar","Najm","Jabal","Bahr","Wadi","Sabr",
+      "Amal","Hayat","Quwwa","Sayf","Barq","Raad","Zaman","Ruh","Sirr","Majd"
+    ],
+    spanish: [
+      // Names
+      "Diego","Lucia","Carlos","Valeria","Miguel","Isabella","Alejandro","Camila","Javier","Sofia",
+      "Gabriel","Daniela","Pablo","Martina","Sergio","Paula","Andres","Laura","Ivan","Ana",
+      // Common/evocative words
+      "Fuego","Agua","Tierra","Viento","Luz","Sombra","Noche","Alba","Luna","Estrella",
+      "Piedra","Hierro","Sangre","Alma","Fuerza","Tormenta","Rayo","Mar","Cielo","Trueno"
+    ],
+    greek: [
+      // Names
+      "Alexandros","Nikos","Elena","Dimos","Katerina","Petros","Maria","Kostas","Sophia","Yiannis",
+      "Thanos","Eleni","Stavros","Zoe","Andreas","Irene","Kyriakos","Despina","Christos","Athena",
+      // Evocative/mythological words
+      "Pyros","Hydor","Gaia","Aether","Nyx","Helios","Selene","Chronos","Eros","Thanatos",
+      "Kratos","Logos","Mythos","Agon","Kairos","Moira","Dike","Xenos","Arete","Eidos"
+    ],
+    hindi: [
+      // Names
+      "Arjun","Priya","Vikram","Ananya","Rohan","Kavya","Aditya","Ishaan","Meera","Vivaan",
+      "Krish","Shruti","Rahul","Pooja","Dev","Nisha","Akash","Riya","Shiv","Aanya",
+      // Common/evocative words
+      "Agni","Jal","Prithvi","Vayu","Akash","Tej","Shakti","Dharma","Karma","Maya",
+      "Atma","Prana","Surya","Chandra","Tara","Nadi","Vana","Giri","Sagara","Yudh"
+    ],
+    chinese: [
+      // Names (romanised pinyin)
+      "Wei","Fang","Lei","Ling","Hao","Mei","Jun","Xia","Tao","Yan",
+      "Zhen","Rui","Ming","Xiu","Long","Feng","Jing","Chen","Bo","Yi",
+      // Evocative words
+      "Huo","Shui","Tu","Feng","Lei","Shan","He","Yue","Xing","Tian",
+      "Jian","Long","Hu","Ying","Zhan","Shen","Gui","Yun","Meng","Hun"
+    ],
+    norse: [
+      // Names
+      "Bjorn","Freya","Leif","Astrid","Gunnar","Sigrid","Ragnar","Ingrid","Erik","Thyra",
+      "Halvard","Ragnhild","Ivar","Gudrun","Sven","Helga","Torbjorn","Ulfhild","Magnus","Runa",
+      // Evocative words
+      "Eld","Vatn","Jord","Vind","Ljos","Skuggi","Nott","Daggry","Mani","Stjarna",
+      "Stein","Jarn","Blod","Sjal","Kraft","Storm","Lyn","Hav","Himmel","Dod"
+    ]
+  },
+
+  // --- Category-specific word pools ---
+  people: {
+    prefix: ["Dal","Vor","Keth","Ael","Myr","Thal","Sor","Bren","Cal","Lyss","Nael","Riv","Sha","Zyn","Ivor"],
+    mid: ["an","iel","en","ara","eis","ion","ath","eth","ior","ela","yn","or","al","yn","ia"],
+    suffix: ["ar","on","el","ia","an","ith","ael","ir","os","yn","en","al","iel","ix","as"]
+  },
+  titles: {
+    adjectives: ["Greatest","Absolute","Supreme","Ancient","Eternal","Iron","Golden","Shadow","Burning","Frozen","Crimson","Hollow","Silent","Shattered","Radiant","Broken","Dread","Unbroken","Last","First"],
+    nouns: ["Showman","Healer","Keeper","Warden","Champion","Oracle","Hunter","Seeker","Blade","Shield","Flame","Storm","Void","Anchor","Pilgrim","Wanderer","Judge","Arbiter","Witness","Sovereign"]
+  },
+  places: {
+    prefix: ["Ash","Stone","Iron","Gold","Shadow","Ember","Frost","Storm","Rune","Vale","Mire","Grim","Night","Dawn","Dusk","Blood","Silver","Dark","White","Black"],
+    mid: ["wood","haven","holm","ton","wick","ford","mere","gate","hollow","peak","ridge","fell","moor","marsh","fen","croft","burrow","reach","keep","spire"],
+    suffix: ["vale","hold","mark","shire","march","mead","dale","bank","cross","watch","bridge","rise","plain","heath","field","cliff","tor","bay","point","cape"]
+  },
+  tools: {
+    prefix: ["Night","Soul","Bone","Star","Blood","Storm","Void","Iron","Death","Grim","Shadow","Ember","Frost","Dawn","Wrath"],
+    mid: ["bringer","render","sever","cleave","pierce","sting","rend","bite","strike","slash","break","shatter","forge","craft","bind"],
+    suffix: ["fang","claw","edge","blade","tip","thorn","spike","bite","jaw","tooth","nail","shard","splinter","point","barb"]
+  },
+  abilities: {
+    prefix: ["Eternal","Void","Crimson","Azure","Golden","Shadow","Storm","Ember","Frozen","Silent","Blazing","Raging","Dark","Radiant","Primal"],
+    mid: ["surge","burst","pulse","wave","strike","bolt","lance","slash","blast","rush","echo","flare","torrent","gale","tide"],
+    suffix: ["nova","flux","rise","fall","break","shatter","cascade","storm","rain","spiral","vortex","pulse","arc","beam","rift"]
+  }
+};
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+
+const state = {
+  currentTab: 'all',
+  fullHistoryOpen: {},
+  autoInterval: null,
+  enabledMethods: new Set(['english','mutate','hindi','compound','fiction','addremove','multilang','stellar']),
+  sessionCount: { people:0, titles:0, places:0, tools:0, abilities:0 },
+  history: { people:[], titles:[], places:[], tools:[], abilities:[] },
+  favourites: [],          // { name, type, method, ts }
+  likes: [],               // session-only liked names (not saved)
+  seenNames: new Set(),    // for avoid-repetition
+  pendingSave: null        // { name, type, method } waiting for dir confirm
+};
+
+// ═══════════════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════════════
+
+function rand(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+}
+
+function getWordCount() {
+  const v = parseInt(document.getElementById('wordCount').value);
+  return Math.max(1, Math.min(5, isNaN(v) ? 2 : v));
+}
+
+function getRandomness() {
+  return parseInt(document.getElementById('randomness').value);
+}
+
+function getLetterChaos() {
+  return parseInt(document.getElementById('letterChaos').value);
+}
+
+function getSeedWord() {
+  return document.getElementById('seedWord').value.trim();
+}
+
+// Mutate a word by changing 1-N letters based on chaos level
+function mutateWord(word, chaos) {
+  if (!word || chaos === 0) return word;
+  const chars = word.split('');
+  const vowels = 'aeiou';
+  const consonants = 'bcdfghjklmnpqrstvwxyz';
+  const mutCount = Math.max(1, Math.ceil((chaos / 10) * Math.min(3, word.length)));
+  
+  for (let m = 0; m < mutCount; m++) {
+    const idx = randInt(0, chars.length - 1);
+    const ch = chars[idx].toLowerCase();
+    let pool;
+    if (vowels.includes(ch)) {
+      pool = vowels;
+    } else if (consonants.includes(ch)) {
+      pool = consonants;
+    } else {
+      continue;
+    }
+    // Pick a different letter
+    let newCh;
+    do { newCh = pool[randInt(0, pool.length-1)]; } while (newCh === ch);
+    chars[idx] = chars[idx] === chars[idx].toUpperCase() ? newCh.toUpperCase() : newCh;
+  }
+  return chars.join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  GENERATORS
+// ═══════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════
+//  GENERATORS  (seed word always incorporated)
+// ═══════════════════════════════════════════════════════
+
+function genEnglishName(type) {
+  const d = DICT;
+  let parts = [];
+  const wc = getWordCount();
+  const seed = getSeedWord();
+
+  if (type === 'people') {
+    if (seed) {
+      parts.push(capitalize(seed));
+      if (wc > 1) parts.push(rand(d.nameRoots));
+      if (wc > 2) parts.push(capitalize(rand(d.englishNameLike)));
+    } else {
+      parts.push(Math.random() < 0.5
+        ? rand(d.people.prefix) + rand(d.people.mid) + rand(d.people.suffix)
+        : rand(d.nameRoots));
+      if (wc > 1) parts.push(rand(d.nameRoots));
+      if (wc > 2) parts.push(capitalize(rand(d.englishNameLike)));
+    }
+  } else if (type === 'titles') {
+    if (seed) {
+      parts.push(rand(d.titles.adjectives));
+      parts.push(capitalize(seed));
+      if (wc > 2) parts.push(rand(d.titles.nouns));
+    } else {
+      parts.push(rand(d.titles.adjectives));
+      parts.push(rand(d.titles.nouns));
+      if (wc > 2) parts.push(rand(d.titles.adjectives));
+    }
+  } else if (type === 'places') {
+    if (seed) {
+      parts.push(capitalize(seed) + rand(d.places.mid));
+      if (wc > 1) parts.push(capitalize(rand(d.places.suffix)));
+      if (wc > 2) parts.push(rand(d.englishNameLike));
+    } else {
+      parts.push(capitalize(rand(d.places.prefix) + rand(d.places.mid)));
+      if (wc > 1) parts.push(capitalize(rand(d.places.suffix)));
+      if (wc > 2) parts.push(rand(d.englishNameLike));
+    }
+  } else if (type === 'tools') {
+    if (seed) {
+      parts.push(capitalize(seed) + rand(d.tools.suffix));
+      if (wc > 1) parts.push('the ' + rand(d.tools.mid));
+      if (wc > 2) parts.push(rand(d.tools.prefix));
+    } else {
+      parts.push(rand(d.tools.prefix) + rand(d.tools.suffix));
+      if (wc > 1) parts.push('the ' + rand(d.tools.mid));
+      if (wc > 2) parts.push(rand(d.tools.prefix));
+    }
+  } else if (type === 'abilities') {
+    if (seed) {
+      parts = [rand(d.abilities.prefix) + ' ' + capitalize(seed)];
+      if (wc > 1) parts.push(rand(d.abilities.suffix));
+      if (wc > 2) parts.push(rand(d.abilities.prefix));
+    } else {
+      parts = [rand(d.abilities.prefix) + ' ' + rand(d.abilities.mid)];
+      if (wc > 1) parts.push(rand(d.abilities.suffix));
+      if (wc > 2) parts.push(rand(d.abilities.prefix));
+    }
+  }
+
+  return { name: parts.slice(0, Math.max(1, wc)).join(' '), method: 'English Roots' };
+}
+
+function genMutatedName(type) {
+  const chaos = getLetterChaos();
+  const wc = getWordCount();
+  const seed = getSeedWord();
+
+  // Always use seed as the base if provided
+  const base = seed || rand([...DICT.nameRoots, ...DICT.englishNameLike,
+    ...DICT.people.prefix.map(p => p + rand(DICT.people.suffix))]);
+
+  const mutated = capitalize(mutateWord(base.toLowerCase(), Math.max(1, chaos)));
+  let parts = [mutated];
+
+  if (wc > 1) {
+    // Mutate seed again with softer chaos, or pick a new word and mutate it
+    const src2 = seed || rand(DICT.englishNameLike);
+    parts.push(capitalize(mutateWord(src2.toLowerCase(), Math.max(1, Math.ceil(chaos * 0.6)))));
+  }
+  if (wc > 2) parts.push(rand(DICT.nameRoots));
+
+  return { name: parts.slice(0, wc).join(' '), method: 'Letter Mutation' };
+}
+
+function genHindiName(type) {
+  const wc = getWordCount();
+  const seed = getSeedWord();
+  const n1 = rand(DICT.hindiNumbers);
+  let parts;
+
+  if (seed) {
+    // Fuse seed with a hindi number syllable
+    parts = [capitalize(seed) + n1.toLowerCase()];
+    if (wc > 1) parts.push(rand(DICT.hindiNumbers));
+    if (wc > 2) parts.push(rand(DICT.nameRoots));
+  } else {
+    parts = [n1];
+    if (wc > 1) parts.push(Math.random() < 0.5 ? rand(DICT.hindiNumbers) : rand(DICT.nameRoots));
+    if (wc > 2) parts.push(rand(DICT.englishNameLike));
+  }
+
+  return { name: parts.slice(0, wc).join(' '), method: 'Hindi Numbers' };
+}
+
+function genCompoundName(type) {
+  const wc = getWordCount();
+  const d = DICT;
+  const seed = getSeedWord();
+  // Seed replaces the element/subject slot
+  const element = seed ? capitalize(seed) : rand(d.compoundElements);
+  let name;
+
+  if (wc >= 3) {
+    const role = rand(d.compoundRoles);
+    const conn = rand(d.compoundOf);
+    const place = rand(d.compoundPlaces);
+    name = wc >= 4
+      ? `${element} ${role} ${conn} ${place}, ${rand(d.compoundPlaces)}`
+      : `${element} ${role} ${conn} ${place}`;
+  } else if (wc === 2) {
+    name = `${element} ${rand(d.compoundRoles)}`;
+  } else {
+    name = `${element}${rand(d.places.mid)}`;
+  }
+
+  return { name, method: 'Compound Structure' };
+}
+
+function genFictionName(type) {
+  const wc = getWordCount();
+  const seed = getSeedWord();
+  const pool = DICT.fiction[type] || DICT.fiction.people;
+  let base = rand(pool);
+
+  if (seed) {
+    // Combine fiction name with seed
+    base = Math.random() < 0.5
+      ? capitalize(seed) + ' ' + base
+      : base + ' ' + capitalize(seed);
+  } else {
+    if (wc > 1 && type === 'people') base += ' ' + rand(DICT.nameRoots);
+    else if (wc > 1 && type === 'places') base += ' ' + rand(DICT.places.mid);
+  }
+
+  return { name: base, method: 'Fiction Names' };
+}
+
+// ── ADD / REMOVE LETTER ──────────────────────────────────
+function genAddRemoveName(type) {
+  const wc = getWordCount();
+  const seed = getSeedWord();
+  const pool = [...DICT.nameRoots, ...DICT.englishNameLike,
+    ...DICT.people.prefix.map(p => p + rand(DICT.people.suffix))];
+
+  function addRemove(word) {
+    const w = word.toLowerCase();
+    const vowels = 'aeiou';
+    const consonants = 'bcdfghjklmnpqrstvwxyz';
+    const op = Math.random() < 0.5 ? 'add' : 'remove';
+
+    if (op === 'remove' && w.length > 2) {
+      // Remove one non-first letter
+      const idx = randInt(1, w.length - 1);
+      return capitalize(w.slice(0, idx) + w.slice(idx + 1));
+    } else {
+      // Add one letter at a random internal position
+      const allLetters = vowels + consonants;
+      const letter = allLetters[randInt(0, allLetters.length - 1)];
+      const idx = randInt(1, w.length);
+      return capitalize(w.slice(0, idx) + letter + w.slice(idx));
+    }
+  }
+
+  const base = seed || rand(pool);
+  let parts = [addRemove(base)];
+  if (wc > 1) parts.push(addRemove(seed || rand(pool)));
+  if (wc > 2) parts.push(addRemove(rand(pool)));
+
+  return { name: parts.slice(0, wc).join(' '), method: 'Add / Remove Letter' };
+}
+
+// ── MULTILINGUAL ─────────────────────────────────────────
+function genMultilangName(type) {
+  const wc = getWordCount();
+  const seed = getSeedWord();
+  const langs = Object.keys(DICT.multilang);
+  const lang1 = rand(langs);
+  const pool1 = DICT.multilang[lang1];
+  let base = rand(pool1);
+
+  if (seed) {
+    base = Math.random() < 0.5 ? capitalize(seed) + ' ' + base : base + ' ' + capitalize(seed);
+  }
+
+  let parts = [base];
+
+  if (wc > 1) {
+    // Second word from same or different language
+    const lang2 = Math.random() < 0.4 ? lang1 : rand(langs);
+    parts.push(rand(DICT.multilang[lang2]));
+  }
+  if (wc > 2) {
+    parts.push(rand(DICT.multilang[rand(langs)]));
+  }
+
+  return { name: parts.slice(0, wc).join(' '), method: `Multilingual (${capitalize(lang1)})` };
+}
+
+// ── STELLAR ──────────────────────────────────────────────
+function genStellarName(type) {
+  const wc = getWordCount();
+  const seed = getSeedWord();
+  const pool = DICT.stellar.stars;
+
+  let base = rand(pool);
+  if (seed) {
+    base = Math.random() < 0.5 ? capitalize(seed) + ' ' + base : base + ' ' + capitalize(seed);
+  }
+
+  let parts = [base];
+  if (wc > 1) parts.push(rand(pool));
+  if (wc > 2) parts.push(rand(pool));
+
+  return { name: parts.slice(0, wc).join(' '), method: 'Star Names' };
+}
+
+// Master generator
+function generateName(type) {
+  const methods = Array.from(state.enabledMethods);
+  if (methods.length === 0) return { name: '???', method: 'None enabled' };
+
+  const randomness = getRandomness();
+  const seed = getSeedWord();
+
+  let chosenMethod;
+  if (seed) {
+    const seedFavored = methods.filter(m => ['mutate','addremove','compound','english'].includes(m));
+    if (seedFavored.length > 0 && Math.random() < 0.75) chosenMethod = rand(seedFavored);
+  }
+
+  if (!chosenMethod) {
+    // Boost stellar weight if in enabled methods
+    const weights = {
+      english: 10 - randomness, mutate: randomness,
+      hindi: Math.round(randomness * 0.7), compound: Math.round(randomness * 0.6),
+      fiction: 5, addremove: Math.round(randomness * 0.8), multilang: 7, stellar: 6
+    };
+    const available = methods.filter(m => (weights[m] || 0) > 0);
+    const totalW = available.reduce((s, m) => s + weights[m], 0);
+    let r = Math.random() * totalW;
+    for (const m of available) { r -= weights[m]; if (r <= 0) { chosenMethod = m; break; } }
+    if (!chosenMethod) chosenMethod = rand(methods);
+  }
+
+  const generators = {
+    english: genEnglishName, mutate: genMutatedName,
+    hindi: genHindiName, compound: genCompoundName, fiction: genFictionName,
+    addremove: genAddRemoveName, multilang: genMultilangName, stellar: genStellarName
+  };
+
+  // Try up to 8 times to avoid repeating names seen this session
+  let result;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    result = (generators[chosenMethod] || genEnglishName)(type);
+    const key = result.name.toLowerCase();
+    if (!state.seenNames.has(key)) {
+      state.seenNames.add(key);
+      break;
+    }
+    // Try a different method on retry
+    chosenMethod = rand(methods);
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DISPLAY
+// ═══════════════════════════════════════════════════════
+
+const TYPES = ['people','titles','places','tools','abilities'];
+
+function updateAllTab(type, result) {
+  const nameEl = document.getElementById('all-name-' + type);
+  const methodEl = document.getElementById('all-method-' + type);
+  if (!nameEl) return;
+  nameEl.className = 'all-card-name';
+  nameEl.textContent = result.name;
+  methodEl.textContent = '↳ ' + result.method;
+}
+
+function displayName(type, result) {
+  const el = document.getElementById('name-' + type);
+  const methodEl = document.getElementById('method-' + type);
+  const wrap = document.getElementById('wrap-' + type);
+  const actions = document.getElementById('actions-' + type);
+
+  el.className = 'current-name cursor';
+  el.textContent = result.name;
+  methodEl.textContent = '↳ ' + result.method;
+
+  // Show action bar, reset button states for the new name
+  if (actions) {
+    actions.style.display = 'flex';
+    const likeBtn = document.getElementById('cur-like-' + type);
+    const favBtn = document.getElementById('cur-fav-' + type);
+    if (likeBtn) { likeBtn.classList.remove('active'); likeBtn.textContent = '♡'; }
+    if (favBtn) { favBtn.classList.remove('active'); favBtn.textContent = '⭐'; }
+  }
+
+  wrap.classList.add('pulse');
+  setTimeout(() => { wrap.classList.remove('pulse'); el.classList.remove('cursor'); }, 800);
+
+  state.history[type].unshift(result);
+  state.sessionCount[type]++;
+
+  updateAllTab(type, result);
+  renderHistory(type);
+  renderFullHistory(type);
+  renderStats();
+  if (state.likes.length > 0) renderRelatedNames();
+}
+
+function renderHistory(type) {
+  const hist = state.history[type];
+  const el = document.getElementById('hist-' + type);
+  if (!el) return;
+
+  if (hist.length === 0) {
+    el.innerHTML = '<div class="empty-state">No names generated yet.</div>';
+    return;
+  }
+
+  const shown = hist.slice(0, 3);
+  el.innerHTML = shown.map((r, i) => {
+    const idx = state.sessionCount[type] - i;
+    const isLiked = state.likes.some(l => l.name === r.name);
+    const isFav = state.favourites.some(f => f.name === r.name);
+    return `
+    <div class="history-item" style="opacity:${1 - i * 0.18}">
+      <div style="flex:1;min-width:0;">
+        <div class="history-name" style="cursor:pointer;" onclick="copyName('${r.name.replace(/'/g,"\\'")}',this)" title="Click to copy">${r.name}</div>
+        <div class="history-meta">${r.method}</div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn like-btn ${isLiked?'active':''}" title="Like (biases suggestions)" onclick="toggleLike('${r.name.replace(/'/g,"\\'")}','${type}','${r.method}',this)">♡</button>
+        <button class="icon-btn fav-btn ${isFav?'active':''}" title="Save to favourites" onclick="saveFavourite('${r.name.replace(/'/g,"\\'")}','${type}','${r.method}',this)">⭐</button>
+        <span class="history-badge">#${idx}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFullHistory(type) {
+  const el = document.getElementById('fullhist-scroll-' + type);
+  if (!el) return;
+  const hist = state.history[type];
+  if (hist.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px;">Nothing generated yet.</div>';
+    return;
+  }
+  el.innerHTML = hist.map((r, i) => {
+    const idx = state.sessionCount[type] - i;
+    const isLiked = state.likes.some(l => l.name === r.name);
+    const isFav = state.favourites.some(f => f.name === r.name);
+    return `
+    <div class="fh-item">
+      <div style="flex:1;min-width:0;">
+        <div class="fh-name" style="cursor:pointer;" onclick="copyName('${r.name.replace(/'/g,"\\'")}',this)" title="Click to copy">${r.name}</div>
+        <div class="fh-meta">${r.method}</div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn like-btn ${isLiked?'active':''}" title="Like" onclick="toggleLike('${r.name.replace(/'/g,"\\'")}','${type}','${r.method}',this)">♡</button>
+        <button class="icon-btn fav-btn ${isFav?'active':''}" title="Favourite" onclick="saveFavourite('${r.name.replace(/'/g,"\\'")}','${type}','${r.method}',this)">⭐</button>
+        <span class="fh-num">#${idx}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── COPY ────────────────────────────────────────────────
+function copyName(name, el) {
+  navigator.clipboard.writeText(name).then(() => {
+    showToast('📋 Copied: ' + name);
+  }).catch(() => showToast('📋 ' + name));
+}
+
+// ── TOAST ───────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, duration = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── LIKE / RELATED NAMES ────────────────────────────────
+function toggleLike(name, type, method, btn) {
+  const existing = state.likes.findIndex(l => l.name === name);
+  if (existing >= 0) {
+    state.likes.splice(existing, 1);
+    btn.classList.remove('active');
+    btn.textContent = '♡';
+    showToast('♡ Unliked: ' + name);
+  } else {
+    state.likes.push({ name, type, method });
+    btn.classList.add('active');
+    btn.textContent = '♥';
+    showToast('♥ Liked: ' + name);
+  }
+  renderRelatedNames();
+}
+
+function renderRelatedNames() {
+  const el = document.getElementById('relatedList');
+  if (!el) return;
+
+  if (state.likes.length === 0 && state.history.people.length + state.history.titles.length === 0) {
+    el.innerHTML = '<div style="font-size:0.75rem;color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;">Generate some names first…</div>';
+    return;
+  }
+
+  // Build bias pool from liked names: extract phonetic chunks
+  const related = generateRelatedNames();
+  if (related.length === 0) {
+    el.innerHTML = '<div style="font-size:0.75rem;color:var(--text-dim);font-family:\'Share Tech Mono\',monospace;">Like some names to see suggestions…</div>';
+    return;
+  }
+
+  el.innerHTML = related.map(r => {
+    const isLiked = state.likes.some(l => l.name === r.name);
+    const isFav = state.favourites.some(f => f.name === r.name);
+    return `
+    <div class="related-item">
+      <div style="flex:1;min-width:0;">
+        <div class="related-name" style="cursor:pointer;" onclick="copyName('${r.name.replace(/'/g,"\\'")}',this)" title="Click to copy">${r.name}</div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn like-btn ${isLiked?'active':''}" title="Like" onclick="toggleLike('${r.name.replace(/'/g,"\\'")}','related','Related',this)">♡</button>
+        <button class="icon-btn fav-btn ${isFav?'active':''}" title="Favourite" onclick="saveFavourite('${r.name.replace(/'/g,"\\'")}','related','Related Suggestion',this)">⭐</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function generateRelatedNames() {
+  if (state.likes.length === 0) return [];
+
+  // Extract features from liked names: length, start letters, end letters, vowel ratio
+  const likedNames = state.likes.map(l => l.name.split(' ')[0]); // first word of each
+  const avgLen = Math.round(likedNames.reduce((s, n) => s + n.length, 0) / likedNames.length);
+  const startChars = likedNames.map(n => n[0].toLowerCase());
+  const endChars = likedNames.map(n => n[n.length-1].toLowerCase());
+
+  // Build a pool of candidates from all pools
+  const allWords = [
+    ...DICT.nameRoots, ...DICT.englishNameLike,
+    ...DICT.stellar.stars,
+    ...Object.values(DICT.multilang).flat(),
+    ...DICT.fiction.people
+  ].filter(w => !state.seenNames.has(w.toLowerCase()));
+
+  // Score candidates by similarity to liked names
+  const scored = allWords.map(w => {
+    let score = 0;
+    const wl = w.toLowerCase();
+    const lenDiff = Math.abs(w.length - avgLen);
+    score -= lenDiff * 0.5;
+    if (startChars.includes(wl[0])) score += 3;
+    if (endChars.includes(wl[wl.length-1])) score += 2;
+    // Check shared substrings (2-char) with liked names
+    likedNames.forEach(ln => {
+      for (let i = 0; i < ln.length - 1; i++) {
+        const chunk = ln.slice(i, i+2).toLowerCase();
+        if (wl.includes(chunk)) score += 1;
+      }
+    });
+    // Don't suggest already liked or seen
+    if (state.likes.some(l => l.name === w)) score = -99;
+    return { name: w, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  // Take top 10, then pick 5 randomly from those (adds variety)
+  const top = scored.slice(0, 12);
+  const shuffled = top.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 5).map(s => ({ name: s.name }));
+}
+
+// ── FAVOURITES ──────────────────────────────────────────
+function saveFavourite(name, type, method, btn) {
+  if (state.favourites.some(f => f.name === name)) {
+    showToast('⭐ Already in favourites');
+    return;
+  }
+  const entry = { name, type, method, ts: new Date().toISOString() };
+  state.favourites.push(entry);
+  if (btn) { btn.classList.add('active'); }
+  // Re-render so all instances update
+  TYPES.forEach(t => { renderHistory(t); renderFullHistory(t); });
+  renderRelatedNames();
+
+  // Trigger download for this single entry
+  downloadSingleFavourite(entry);
+}
+
+function getFavFilename() {
+  const dir = document.getElementById('favDir').value.trim().replace(/\/+$/, '');
+  const name = (document.getElementById('favFilename').value.trim() || 'Name Forge Favourites');
+  // We can't control actual OS directory from browser, so we encode dir as part of filename
+  // and show the user the full "path" they should place it at
+  return name + '.md';
+}
+
+function getFavPathHint() {
+  const dir = document.getElementById('favDir').value.trim().replace(/\/+$/, '');
+  const name = (document.getElementById('favFilename').value.trim() || 'Name Forge Favourites');
+  return dir ? `${dir}/${name}.md` : `${name}.md`;
+}
+
+function updateSaveDirPreview() {
+  const el = document.getElementById('saveDirPreview');
+  if (el) el.textContent = '→ ' + getFavPathHint();
+}
+
+function downloadSingleFavourite(entry) {
+  const filename = getFavFilename();
+  const date = new Date(entry.ts);
+  const dateStr = date.toLocaleDateString('en-GB');
+  const timeStr = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  const typeLabel = entry.type.charAt(0).toUpperCase() + entry.type.slice(1);
+  const pathHint = getFavPathHint();
+
+  let content;
+  if (state.favourites.length === 1) {
+    content = [
+      `# Name Forge Favourites`,
+      ``,
+      `> Vault path: \`${pathHint}\``,
+      ``,
+      `| Name | Type | Method | Saved |`,
+      `|------|------|--------|-------|`,
+      `| ${entry.name} | ${typeLabel} | ${entry.method} | ${dateStr} ${timeStr} |`,
+      ``
+    ].join('\n');
+  } else {
+    content = `| ${entry.name} | ${typeLabel} | ${entry.method} | ${dateStr} ${timeStr} |\n`;
+  }
+
+  triggerDownload(filename, content);
+  showToast(`⭐ Saved "${entry.name}" — place at ${pathHint}`, 3500);
+}
+
+function downloadAllFavourites() {
+  if (state.favourites.length === 0) { showToast('No favourites yet'); return; }
+  const filename = getFavFilename();
+  const pathHint = getFavPathHint();
+  const rows = state.favourites.map(f => {
+    const date = new Date(f.ts);
+    const dateStr = date.toLocaleDateString('en-GB');
+    const timeStr = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    const typeLabel = f.type.charAt(0).toUpperCase() + f.type.slice(1);
+    return `| ${f.name} | ${typeLabel} | ${f.method} | ${dateStr} ${timeStr} |`;
+  }).join('\n');
+
+  const content = [
+    `# Name Forge Favourites`,
+    ``,
+    `> Vault path: \`${pathHint}\``,
+    ``,
+    `| Name | Type | Method | Saved |`,
+    `|------|------|--------|-------|`,
+    rows,
+    ``
+  ].join('\n');
+
+  triggerDownload(filename, content);
+  showToast(`⬇ Downloaded ${state.favourites.length} favourites`);
+}
+
+function triggerDownload(filename, content) {
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function openFavourites() {
+  const body = document.getElementById('favListBody');
+  if (state.favourites.length === 0) {
+    body.innerHTML = '<div class="empty-state" style="padding:30px;">No favourites saved yet.<br><span style="font-size:0.7rem;color:var(--text-dim);">Click ⭐ on any generated name.</span></div>';
+  } else {
+    body.innerHTML = state.favourites.map((f, i) => {
+      const date = new Date(f.ts);
+      const dateStr = date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+      const typeLabel = f.type.charAt(0).toUpperCase() + f.type.slice(1);
+      return `
+      <div class="fh-item">
+        <div style="flex:1;">
+          <div class="fh-name" style="cursor:pointer;" onclick="copyName('${f.name.replace(/'/g,"\\'")}',this)">${f.name}</div>
+          <div class="fh-meta">${typeLabel} · ${f.method} · ${dateStr}</div>
+        </div>
+        <span class="fh-num">#${i+1}</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('favListBg').classList.add('open');
+}
+function closeFavList() { document.getElementById('favListBg').classList.remove('open'); }
+function closeSaveDir() { document.getElementById('saveDirBg').classList.remove('open'); }
+function closeSaveDirOnBg(e) { if (e.target === document.getElementById('saveDirBg')) closeSaveDir(); }
+function confirmSave() {
+  closeSaveDir();
+  if (state.pendingSave) {
+    const { name, type, method } = state.pendingSave;
+    const entry = { name, type, method, ts: new Date().toISOString() };
+    state.favourites.push(entry);
+    downloadSingleFavourite(entry);
+    state.pendingSave = null;
+  }
+}
+
+function toggleFullHistory(type) {
+  const panel = document.getElementById('fullhist-' + type);
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  const btn = panel.previousElementSibling.querySelector('.see-all-btn');
+  if (btn) btn.textContent = isOpen ? 'Hide ▴' : 'See all ▾';
+  if (isOpen) renderFullHistory(type);
+}
+
+function renderStats() {
+  const total = Object.values(state.sessionCount).reduce((a, b) => a + b, 0);
+  document.getElementById('stats').innerHTML =
+    `Total: ${total}<br>People: ${state.sessionCount.people}<br>` +
+    `Titles: ${state.sessionCount.titles}<br>Places: ${state.sessionCount.places}<br>` +
+    `Tools: ${state.sessionCount.tools}<br>Abilities: ${state.sessionCount.abilities}`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════
+
+function refreshAll() {
+  TYPES.forEach(type => {
+    const result = generateName(type);
+    displayName(type, result);
+  });
+}
+
+function toggleAuto() {
+  const btn = document.getElementById('autoBtn');
+  const indicator = document.getElementById('autoIndicator');
+
+  if (state.autoInterval) {
+    clearInterval(state.autoInterval);
+    state.autoInterval = null;
+    btn.textContent = '▶ Auto Refresh';
+    btn.classList.remove('running');
+    indicator.style.display = 'none';
+    TYPES.forEach(renderHistory);
+  } else {
+    const speedVal = parseInt(document.getElementById('autoSpeed').value);
+    const ms = Math.round(2200 - speedVal * 200);
+    refreshAll();
+    state.autoInterval = setInterval(refreshAll, ms);
+    btn.textContent = '■ Stop Auto';
+    btn.classList.add('running');
+    indicator.style.display = 'inline-flex';
+  }
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+}
+
+// ── CURRENT-NAME ACTIONS ────────────────────────────────
+function getCurrentName(type) {
+  return document.getElementById('name-' + type)?.textContent?.trim() || '';
+}
+
+function getCurrentMethod(type) {
+  const m = document.getElementById('method-' + type)?.textContent || '';
+  return m.replace('↳ ', '').trim();
+}
+
+function copyCurrent(type) {
+  const name = getCurrentName(type);
+  if (!name || name.startsWith('—')) return;
+  copyName(name, null);
+}
+
+function toggleCurLike(type) {
+  const name = getCurrentName(type);
+  if (!name || name.startsWith('—')) return;
+  const method = getCurrentMethod(type);
+  const btn = document.getElementById('cur-like-' + type);
+  const existing = state.likes.findIndex(l => l.name === name);
+  if (existing >= 0) {
+    state.likes.splice(existing, 1);
+    btn.classList.remove('active'); btn.textContent = '♡';
+    showToast('♡ Unliked: ' + name);
+  } else {
+    state.likes.push({ name, type, method });
+    btn.classList.add('active'); btn.textContent = '♥';
+    showToast('♥ Liked: ' + name);
+  }
+  renderHistory(type);
+  renderFullHistory(type);
+  renderRelatedNames();
+}
+
+function toggleCurFav(type) {
+  const name = getCurrentName(type);
+  if (!name || name.startsWith('—')) return;
+  const method = getCurrentMethod(type);
+  const btn = document.getElementById('cur-fav-' + type);
+  if (state.favourites.some(f => f.name === name)) {
+    showToast('⭐ Already in favourites'); return;
+  }
+  btn.classList.add('active');
+  saveFavourite(name, type, method, null);
+}
+
+// ── SELECT ALL / UNSELECT ALL ────────────────────────────
+function toggleSelectAll() {
+  const rows = document.querySelectorAll('#methodList .method-row');
+  const btn = document.getElementById('selectAllBtn');
+  const allSelected = state.enabledMethods.size === rows.length;
+
+  if (allSelected) {
+    // Unselect all
+    rows.forEach(row => {
+      row.classList.remove('selected');
+      state.enabledMethods.delete(row.dataset.method);
+    });
+    btn.textContent = 'Select All';
+  } else {
+    // Select all
+    rows.forEach(row => {
+      row.classList.add('selected');
+      state.enabledMethods.add(row.dataset.method);
+    });
+    btn.textContent = 'Unselect All';
+  }
+}
+
+function toggleMethod(el) {
+  const method = el.dataset.method;
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) {
+    state.enabledMethods.add(method);
+  } else {
+    state.enabledMethods.delete(method);
+  }
+  const rows = document.querySelectorAll('#methodList .method-row');
+  const btn = document.getElementById('selectAllBtn');
+  if (btn) btn.textContent = state.enabledMethods.size === rows.length ? 'Unselect All' : 'Select All';
+}
+
+function clearAll() {
+  if (state.autoInterval) {
+    clearInterval(state.autoInterval);
+    state.autoInterval = null;
+    document.getElementById('autoBtn').textContent = '▶ Auto Refresh';
+    document.getElementById('autoBtn').classList.remove('running');
+    document.getElementById('autoIndicator').style.display = 'none';
+  }
+
+  TYPES.forEach(type => {
+    state.history[type] = [];
+    state.sessionCount[type] = 0;
+    const el = document.getElementById('name-' + type);
+    if (el) { el.className = 'current-name empty'; el.textContent = '— press refresh —'; }
+    const mEl = document.getElementById('method-' + type);
+    if (mEl) mEl.textContent = '';
+    const hEl = document.getElementById('hist-' + type);
+    if (hEl) hEl.innerHTML = '';
+    const fhEl = document.getElementById('fullhist-scroll-' + type);
+    if (fhEl) fhEl.innerHTML = '';
+    const panel = document.getElementById('fullhist-' + type);
+    if (panel) panel.classList.remove('open');
+    const anEl = document.getElementById('all-name-' + type);
+    if (anEl) { anEl.className = 'all-card-name empty'; anEl.textContent = '— press refresh —'; }
+    const amEl = document.getElementById('all-method-' + type);
+    if (amEl) amEl.textContent = '';
+  });
+
+  // Reset session state (keep favourites, reset likes and seen)
+  state.seenNames = new Set();
+  state.likes = [];
+  renderRelatedNames();
+  renderStats();
+}
+
+// ═══════════════════════════════════════════════════════
+//  DICTIONARY MODAL
+// ═══════════════════════════════════════════════════════
+
+function openDict() {
+  const sections = [
+    { title: 'Name Roots', words: DICT.nameRoots },
+    { title: 'English Name-Like Words', words: DICT.englishNameLike },
+    { title: 'Hindi Numbers (1-100)', words: DICT.hindiNumbers },
+    { title: 'Compound Elements', words: DICT.compoundElements },
+    { title: 'Compound Roles', words: DICT.compoundRoles },
+    { title: 'Compound Places', words: DICT.compoundPlaces },
+    { title: 'Compound Connectors', words: DICT.compoundOf },
+    { title: 'Fiction: People', words: DICT.fiction.people },
+    { title: 'Fiction: Titles', words: DICT.fiction.titles },
+    { title: 'Fiction: Places', words: DICT.fiction.places },
+    { title: 'Fiction: Tools', words: DICT.fiction.tools },
+    { title: 'Fiction: Abilities', words: DICT.fiction.abilities },
+    { title: 'Stars (Named)', words: DICT.stellar.stars },
+    { title: 'People Prefixes', words: DICT.people.prefix },
+    { title: 'People Suffixes', words: DICT.people.suffix },
+    { title: 'Title Adjectives', words: DICT.titles.adjectives },
+    { title: 'Title Nouns', words: DICT.titles.nouns },
+    { title: 'Place Prefixes', words: DICT.places.prefix },
+    { title: 'Place Middles', words: DICT.places.mid },
+    { title: 'Place Suffixes', words: DICT.places.suffix },
+    { title: 'Tool Prefixes', words: DICT.tools.prefix },
+    { title: 'Tool Suffixes', words: DICT.tools.suffix },
+    { title: 'Ability Prefixes', words: DICT.abilities.prefix },
+    { title: 'Ability Middles', words: DICT.abilities.mid },
+    { title: 'Ability Suffixes', words: DICT.abilities.suffix },
+    ...Object.entries(DICT.multilang).map(([lang, words]) => ({
+      title: `Multilingual: ${lang.charAt(0).toUpperCase() + lang.slice(1)}`, words
+    })),
+  ];
+
+  document.getElementById('modalBody').innerHTML = sections.map(s => `
+    <div class="dict-section">
+      <div class="dict-section-title">${s.title} <span style="color:var(--text-dim);font-size:0.65rem;">(${s.words.length})</span></div>
+      <div class="dict-tags">
+        ${s.words.map(w => `<span class="dict-tag">${w}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeDict() {
+  document.getElementById('modalBg').classList.remove('open');
+}
+
+function closeModalOnBg(e) {
+  if (e.target === document.getElementById('modalBg')) closeDict();
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+renderStats();
+renderRelatedNames();
+
+// Live preview for save-dir modal
+document.getElementById('favDir').addEventListener('input', updateSaveDirPreview);
+document.getElementById('favFilename').addEventListener('input', updateSaveDirPreview);
+updateSaveDirPreview();
+
+// Spacebar to refresh (when not typing in an input)
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    refreshAll();
+  }
+});
+</script>
+</body>
+</html>
