@@ -27,7 +27,7 @@
 - Inspect every stored word pool in the Dictionary.
 
 **Keep**
-- Like names so Related Names suggestions lean towards them (session only).
+- "Like" names so "Related Names" suggestions lean towards them (session only).
 - Save favourites and download them as Markdown table rows, with a filename and vault-folder hint you choose.
 
 <!-- SCREENSHOT: key flow -->
@@ -43,8 +43,8 @@
 ## Decisions and trade-offs
 | Decision | Over | Because |
 |---|---|---|
-| Rule-based generation from stored word pools | AI or online name services | The brief was an entirely offline tool with no AI |
-| All five name types generated together | One type at a time | The brief asked for every type to generate simultaneously, in separate tabs |
+| Rule-based generation from stored word pools | AI or online name services | Offline workflow with options for local file storage for favourites. |
+| All five name types generated together | One type at a time | The recent history can be glanced at with new group of names by switching tabs. |
 | Seed word used by every method | Using it only some of the time | Version 1 applied it inconsistently; version 2 fixed that |
 | Likes kept for the session; favourites exported | Saving likes too | Likes only steer suggestions; favourites are the keepers |
 | Favourites downloaded as Markdown rows | Writing straight into a vault folder | A web page cannot write to arbitrary folders |
@@ -69,7 +69,7 @@
 - Names, likes and favourites exist in memory only. Favourite downloads are created locally on your device.
 
 ## Evidence
-Used only by its author so far; no usage numbers collected.
+No usage numbers collected so far.
 
 ## Version history
 Latest: **v0.4.0** (2026-11-26). Full detail in [CHANGELOG.md](CHANGELOG.md) and [Releases](../../releases).
@@ -86,7 +86,7 @@ Earlier versions are archived builds restored from local backups; the source at 
 Report problems or ideas in [Issues](../../issues). Useful details: browser and version, the method badge shown under the name, and the steps that led to it.
 
 ## How this was built
-I designed and specified the tool (offline, no AI, five name types, methods, favourites flow), directed the build, tested each version and decided what to keep or cut. Claude (Anthropic) wrote much of the implementation. The generator itself uses no AI.
+I designed and specified the tool, directed the build, tested each version and decided what to keep or cut. Claude (Anthropic) wrote much of the implementation. The generator itself uses no AI.
 
 ## Credits
 - Fonts: Cinzel, Share Tech Mono and Inter via Google Fonts.
